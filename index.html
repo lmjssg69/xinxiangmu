@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Minecraft客户端 - 加入我们</title>
+<style>
+  :root {
+    --accent:#61b1ff;
+    --accent-glow:rgba(97, 177, 255, 0.4);
+    --dark:#111;
+    --light:#f5f5f5;
+    --backdrop:rgba(0,0,0,0.7);
+  }
+  * {
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+  }
+  body {
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:var(--dark);
+    color:var(--light);
+    overflow-x:hidden;
+  }
+  /* 雪花容器 */
+  #snow-container {
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:50;
+  }
+  .snowflake {
+    position:absolute;
+    background:#fff;
+    border-radius:50%;
+    opacity:0.7;
+    animation:fall linear infinite;
+  }
+  @keyframes fall {
+    to {
+      transform:translateY(100vh) translateX(20px);
+      opacity:0;
+    }
+  }
+  /* 顶部导航 */
+  .navbar {
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    background:rgba(17,17,17,0.92);
+    padding:12px 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    z-index:90;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .navbar-logo {
+    font-size:1.2rem;
+    font-weight:600;
+    color:var(--accent);
+  }
+  .navbar-links {
+    display:flex;
+    gap:20px;
+  }
+  .navbar-links a {
+    color:#aaa;
+    text-decoration:none;
+    font-size:0.9rem;
+    transition:color 0.3s;
+  }
+  .navbar-links a:hover, .navbar-links a.active {
+    color:var(--accent);
+  }
+  /* 回到顶部 */
+  .back-to-top {
+    position:fixed;
+    bottom:24px;
+    right:24px;
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    background:rgba(97,177,255,0.15);
+    border:1px solid rgba(97,177,255,0.3);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--accent);
+    font-size:1.2rem;
+    cursor:pointer;
+    z-index:80;
+    opacity:0;
+    visibility:hidden;
+    transition:opacity 0.3s, visibility 0.3s;
+  }
+  .back-to-top.visible {
+    opacity:1;
+    visibility:visible;
+  }
+  /* 全屏背景 */
+  .hero {
+    width:100vw;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    background:linear-gradient(var(--backdrop),rgba(0,0,0,0.4)),#222;
+    padding:0 20px;
+    position:relative;
+    z-index:10;
+  }
+  .logo {
+    font-size:clamp(2.5rem, 8vw, 3rem);
+    margin-bottom:1rem;
+    text-shadow:0 0 12px var(--accent-glow), 0 0 24px var(--accent-glow);
+    color:var(--accent);
+  }
+  .tagline {
+    font-size:clamp(1rem, 3vw, 1.2rem);
+    max-width:600px;
+    color:var(--accent);
+    opacity:0.9;
+  }
+  .btn {
+    display:inline-block;
+    margin-top:2rem;
+    padding:clamp(0.8rem, 3vw, 1rem) clamp(1.5rem, 5vw, 1.8rem);
+    background:var(--accent);
+    color:#000;
+    font-weight:600;
+    border-radius:12px;
+    text-decoration:none;
+    box-shadow:0 8px 24px var(--accent-glow);
+    transition:all 0.3s ease;
+  }
+  .btn:hover {
+    background:#4a9eff;
+    transform:translateY(-3px);
+    box-shadow:0 12px 32px var(--accent-glow);
+  }
+  .container {
+    width:100%;
+    padding:0 24px;
+    position:relative;
+    z-index:10;
+    min-height:101vh; /* 确保有可滚动空间 */
+  }
+  .section {
+    padding:clamp(6rem, 15vw, 8rem) 0;
+    opacity:0;
+    transform:translateY(40px);
+    transition:opacity 0.8s ease, transform 0.8s ease;
+  }
+  .section.visible {
+    opacity:1;
+    transform:translateY(0);
+  }
+  .section h2 {
+    font-size:clamp(1.8rem, 5vw, 2rem);
+    margin-bottom:1.5rem;
+    color:var(--accent);
+    text-shadow:0 0 10px var(--accent-glow);
+    text-align:center;
+  }
+  .features {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:24px;
+  }
+  .feature {
+    background:rgba(255,255,255,0.05);
+    padding:20px;
+    border-radius:16px;
+    border:1px solid rgba(255,255,255,0.08);
+  }
+  .feature h3 {
+    color:var(--accent);
+    font-size:clamp(1.1rem, 3vw, 1.2rem);
+    margin-bottom:8px;
+  }
+  .feature p {
+    font-size:clamp(0.9rem, 2vw, 0.95rem);
+    color:var(--accent);
+    opacity:0.8;
+  }
+  /* 下载区 */
+  .downloads {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:24px;
+  }
+  .download-card {
+    background:rgba(255,255,255,0.05);
+    padding:24px;
+    border-radius:16px;
+    border:1px solid rgba(255,255,255,0.08);
+    text-align:center;
+  }
+  .download-card h3 {
+    color:var(--accent);
+    margin-bottom:12px;
+  }
+  .download-card p {
+    opacity:0.8;
+    margin-bottom:16px;
+  }
+  .version-badge {
+    display:inline-block;
+    background:#1a5fff;
+    color:#fff;
+    padding:4px 10px;
+    border-radius:20px;
+    font-size:0.85rem;
+    margin-bottom:12px;
+  }
+  .version-badge.planned {
+    background:#666;
+  }
+  .copy-btn {
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:transparent;
+    border:1px solid rgba(97,177,255,0.4);
+    color:var(--accent);
+    padding:8px 12px;
+    border-radius:10px;
+    font-size:0.9rem;
+    cursor:pointer;
+    margin-top:10px;
+  }
+  .copy-btn:hover {
+    background:rgba(97,177,255,0.1);
+  }
+  /* 统计数字 */
+  .stats {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:20px;
+    text-align:center;
+  }
+  .stat-item h3 {
+    font-size:clamp(1.8rem, 4vw, 2.2rem);
+    color:var(--accent);
+    margin-bottom:4px;
+  }
+  .stat-item p {
+    opacity:0.8;
+  }
+  /* 团队展示 */
+  .team {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:20px;
+  }
+  .team-member {
+    text-align:center;
+  }
+  .team-avatar {
+    width:100px;
+    height:100px;
+    border-radius:50%;
+    background:#2a2a2a;
+    margin:0 auto 10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--accent);
+    font-size:1.8rem;
+    border:1px solid rgba(255,255,255,0.08);
+  }
+  .team-member h4 {
+    color:var(--accent);
+    margin-bottom:4px;
+  }
+  .team-member p {
+    font-size:0.85rem;
+    opacity:0.8;
+  }
+  /* FAQ */
+  .faq {
+    max-width:700px;
+    margin:0 auto;
+  }
+  .faq-item {
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:12px;
+    margin-bottom:12px;
+    overflow:hidden;
+  }
+  .faq-question {
+    padding:16px 20px;
+    cursor:pointer;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-weight:600;
+    color:var(--accent);
+  }
+  .faq-answer {
+    padding:0 20px;
+    max-height:0;
+    overflow:hidden;
+    opacity:0;
+    transition:max-height 0.4s ease, opacity 0.4s ease, padding 0.4s ease;
+  }
+  .faq-item.active .faq-answer {
+    padding:0 20px 16px;
+    max-height:600px;
+    opacity:0.9;
+  }
+  .join-section {
+    background:rgba(255,255,255,0.03);
+    border-radius:20px;
+    padding:clamp(24px, 5vw, 32px);
+    margin-top:clamp(6rem, 15vw, 8rem);
+    text-align:center;
+    border:1px solid rgba(255,255,255,0.08);
+  }
+  /* QQ弹窗 */
+  .popup {
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.85);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:100;
+    opacity:0;
+    visibility:hidden;
+    transition:opacity 0.6s ease-in-out, visibility 0.6s ease-in-out;
+    padding:20px;
+  }
+  .popup.active {
+    opacity:1;
+    visibility:visible;
+  }
+  .card {
+    background:#1a1a1a;
+    padding:clamp(24px, 5vw, 28px);
+    border-radius:20px;
+    text-align:center;
+    max-width:420px;
+    width:100%;
+    box-shadow:0 20px 40px rgba(0,0,0,0.5);
+    transform:translateY(20px) scale(0.95);
+    transition:transform 0.6s ease-in-out;
+    border:1px solid rgba(255,255,255,0.08);
+  }
+  .popup.active .card {
+    transform:translateY(0) scale(1);
+  }
+  .card h2 {
+    color:var(--accent);
+    margin-top:0;
+    font-size:clamp(1.6rem, 4vw, 1.8rem);
+  }
+  .card p {
+    font-size:clamp(0.9rem, 2vw, 0.95rem);
+    color:var(--accent);
+    opacity:0.8;
+  }
+  .close {
+    position:absolute;
+    top:20px;
+    right:20px;
+    background:none;
+    border:none;
+    color:var(--accent);
+    font-size:1.5rem;
+    cursor:pointer;
+    opacity:0.7;
+    transition:opacity 0.3s;
+  }
+  .close:hover {
+    opacity:1;
+  }
+  .qq-badge {
+    display:inline-flex;
+    align-items:center;
+    gap:0.5rem;
+    background:#12b7f5;
+    color:#fff;
+    padding:clamp(0.7rem, 2vw, 0.8rem) clamp(1rem, 3vw, 1.2rem);
+    border-radius:12px;
+    text-decoration:none;
+    font-weight:600;
+    margin-top:1rem;
+    box-shadow:0 8px 24px rgba(18,183,245,0.3);
+  }
+  html {
+    scroll-behavior:smooth;
+  }
+</style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-logo">Minecraft客户端</div>
+    <div class="navbar-links">
+      <a href="#features" class="active">特性</a>
+      <a href="#downloads">下载</a>
+      <a href="#stats">数据</a>
+      <a href="#team">团队</a>
+      <a href="#faq">FAQ</a>
+    </div>
+  </nav>
+
+  <div id="snow-container"></div>
+
+  <header class="hero">
+    <div class="logo">Minecraft客户端</div>
+    <div class="tagline">3.6版本适配 | 自定义客户端 | 畅享胜利时刻</div>
+    <a href="#features" class="btn">了解更多</a>
+  </header>
+
+  <div class="container">
+    <section id="features" class="section">
+      <h2>为什么选择我们</h2>
+      <div class="features">
+        <div class="feature">
+          <h3>定制材质包</h3>
+          <p>适配专属材质包，画质升级，视觉体验更流畅</p>
+        </div>
+        <div class="feature">
+          <h3>自定义客户端</h3>
+          <p>定制客户端，支持起床战争、空岛战争等玩法</p>
+        </div>
+        <div class="feature">
+          <h3>稳定流畅</h3>
+          <p>低延迟不卡顿，重写C++、Rust、Java版性能优化等，胜利时刻不中断</p>
+        </div>
+        <div class="feature">
+          <h3>实力不强科技来凑</h3>
+          <p>群里有con公益，进群即可获取</p>
+        </div>
+        <div class="feature">
+          <h3>我们承诺，永久公益</h3>
+          <p>群里有大量材质包和客户端</p>
+          </div>
+          <div class="feature">
+          <h3>一键安装</h3>
+           <p>提供一键安装器，自动配置Java与依赖，新手也能轻松上手</p>
+         </div>
+         <div class="feature">
+           <h3>模组支持</h3>
+           <p>兼容主流模组与插件，支持自定义加载顺序与冲突检测</p>
+         </div>
+         <div class="feature">
+           <h3>社区活跃</h3>
+           <p>QQ群每日更新教程与资源，问题快速响应</p>
+        </div>
+        <div class="feature">
+          <h3>快来加入</h3>
+          <p>Minecraft 3.6 定制客户端
+C++/Rust/Java性能优化｜低延迟不卡顿｜起床战争/空岛战争更顺
+3.6版本适配低延迟高帧率永久公益
+加入QQ群：908203738</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="downloads" class="section">
+      <h2>客户端下载</h2>
+      <div class="downloads">
+        <div class="download-card">
+          <span class="version-badge">最新稳定版</span>
+          <h3>3.6.0 正式版</h3>
+          <p>适配Java 1.8-17，优化起床战争与空岛战争性能</p>
+          <a href="https://qm.qq.com/cgi-bin/qm/qr?k=908203738" target="_blank" class="btn">加入QQ群获取</a>
+          <button class="copy-btn" data-clipboard-text="908203738">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            复制群号
+            908203738
+          </button>
+        </div>
+        <div class="download-card">
+          <span class="version-badge planned">计划中</span>
+          <h3>3.7.0（待 Minecraft 3.7）</h3>
+          <p>将随 Minecraft 3.7 发布，敬请期待</p>
+          <a href="#joinPopup" class="btn popup-trigger">加入群获取更新</a>
+          <button class="copy-btn" data-clipboard-text="908203738">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            复制群号
+            908203738
+          </button>
+        </div>
+        <div class="download-card">
+          <span class="version-badge">一键安装器</span>
+          <h3>客户端安装助手</h3>
+          <p>自动安装Java、客户端与常用材质包，零配置上手</p>
+          <a href="#joinPopup" class="btn popup-trigger">加入群获取</a>
+          <button class="copy-btn" data-clipboard-text="908203738">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            复制群号
+            908203738
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section id="stats" class="section">
+      <h2>我们的成绩</h2>
+      <div class="stats">
+        <div class="stat-item">
+          <h3>10000+</h3>
+          <p>活跃用户</p>
+        </div>
+        <div class="stat-item">
+          <h3>50+</h3>
+          <p>定制材质包</p>
+        </div>
+        <div class="stat-item">
+          <h3>10+</h3>
+          <p>游戏模块</p>
+        </div>
+        <div class="stat-item">
+          <h3>99.5%</h3>
+          <p>稳定性评分</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="team" class="section">
+      <h2>我们的团队</h2>
+      <div class="team">
+        <div class="team-member">
+          <div class="team-avatar">👨‍💻</div>
+          <h4>开发者</h4>
+          <p>负责核心功能与性能优化</p>
+        </div>
+        <div class="team-member">
+          <div class="team-avatar">🎨</div>
+          <h4>美术设计师</h4>
+          <p>定制材质包与界面视觉</p>
+        </div>
+        <div class="team-member">
+          <div class="team-avatar">🛠️</div>
+          <h4>运维工程师</h4>
+          <p>服务器与更新维护</p>
+        </div>
+        <div class="team-member">
+          <div class="team-avatar">📖</div>
+          <h4>文档与教程</h4>
+          <p>使用指南与常见问题解答</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" class="section">
+      <h2>常见问题</h2>
+      <div class="faq">
+        <div class="faq-item">
+          <div class="faq-question">
+            客户端支持哪些版本的Minecraft？
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer">
+            支持Java Edition 1.12.2 至 1.20.x，部分模块对版本有特定要求，详情见群内教程。
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">
+            安装失败怎么办？
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer">
+            请确保安装了Java 8或以上版本，关闭其他占用端口的程序，或使用一键安装器。仍有问题可在QQ群内提问。
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">
+            客户端是否会被服务器封禁？
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer">
+            我们拥有完美的绕过，自带杀en，布吉岛，ec等热门服务器已适配，稳定奔放
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">
+            如何更新到最新版本？
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer">
+            打开客户端的“检查更新”功能，或在QQ群下载最新安装包覆盖安装即可。
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">
+            如何防封？
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer">
+            在进入大厅界面迅速断网，15-20秒即可有效降低封号机率
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="join-section section">
+      <h2>加入我们</h2>
+      <p>获取材质包、自定义客户端下载，解锁更多胜利技巧</p>
+      <a href="https://qm.qq.com/cgi-bin/qm/qr?k=908203738" target="_blank" class="btn">立即加入QQ群</a>
+    </section>
+  </div>
+
+  <div class="back-to-top" id="backToTop">↑</div>
+
+  <div id="joinPopup" class="popup">
+    <button id="closeBtn" class="close">&times;</button>
+    <div class="card">
+      <h2>加入我们的QQ群</h2>
+      <p style="margin-top:12px; font-size:0.9rem;">扫码或搜索群号加入：</p>
+      <div style="margin:12px 0; display:flex; justify-content:center;">
+        <img src="https://via.placeholder.com/180" alt="QQ群二维码" style="width:180px; height:180px; border-radius:12px;">
+      </div>
+      <p>群号：<strong>908203738</strong></p>
+      <p>领取定制材质包+自定义客户端，一起开黑胜利！</p>
+      <a href="https://qm.qq.com/cgi-bin/qm/qr?k=908203738" target="_blank" class="qq-badge">打开QQ加入群聊</a>
+    </div>
+  </div>
+
+<script>
+  const popup = document.getElementById('joinPopup');
+  const closeBtn = document.getElementById('closeBtn');
+  const qqLink = document.querySelector('.qq-badge');
+  const sections = document.querySelectorAll('.section');
+  const snowContainer = document.getElementById('snow-container');
+  const faqItems = document.querySelectorAll('.faq-item');
+  const backToTop = document.getElementById('backToTop');
+  const navLinks = document.querySelectorAll('.navbar-links a');
+  let popupShown = false;
+
+  // 雪花效果
+  function createSnowflake() {
+    const size = Math.random() * 6 + 2;
+    const flake = document.createElement('div');
+    flake.className = 'snowflake';
+    flake.style.width = `${size}px`;
+    flake.style.height = `${size}px`;
+    flake.style.left = `${Math.random() * 100}vw`;
+    flake.style.top = `-10px`;
+    flake.style.opacity = Math.random() * 0.5 + 0.5;
+    const duration = Math.random() * 8 + 5;
+    flake.style.animationDuration = `${duration}s`;
+    snowContainer.appendChild(flake);
+    setTimeout(() => flake.remove(), duration * 1000);
+  }
+  setInterval(createSnowflake, 150);
+
+  // 弹窗显示+锁滚动
+  function showPopup() {
+    if (!popupShown) {
+      popup.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      popupShown = true;
+    }
+  }
+
+  // 弹窗关闭+解锁滚动
+  function hidePopup() {
+    popup.classList.remove('active');
+    document.body.style.overflow = '';
+    popupShown = false;
+  }
+
+  // 更稳的可见性判定
+  const threshold = 80;
+  function isElementInViewport(el) {
+    const rect = el.getBoundingClientRect();
+    const bottom = window.innerHeight || document.documentElement.clientHeight;
+    const top = 0;
+    return (
+      rect.top <= bottom - threshold &&
+      rect.bottom >= top + threshold
+    );
+  }
+
+  function checkVisibility() {
+    sections.forEach(section => {
+      if (isElementInViewport(section)) {
+        section.classList.add('visible');
+      }
+    });
+    // 如需自动弹窗，取消下一行注释
+     //if (window.scrollY > 200 && !popupShown) showPopup();
+  }
+
+  // 页面加载后先检查一次，并轮询兜底
+  window.addEventListener('load', () => {
+    checkVisibility();
+    setInterval(checkVisibility, 200);
+  });
+  // 滚动和窗口变化都触发
+  window.addEventListener('scroll', checkVisibility, { passive: true });
+  window.addEventListener('resize', checkVisibility);
+
+  // FAQ折叠
+  faqItems.forEach(item => {
+    const question = item.querySelector('.faq-question');
+    question.addEventListener('click', () => {
+      item.classList.toggle('active');
+      const toggle = question.querySelector('.faq-toggle');
+      toggle.textContent = item.classList.contains('active') ? '-' : '+';
+    });
+  });
+
+  // 关闭弹窗
+  closeBtn.addEventListener('click', hidePopup);
+  popup.addEventListener('click', (e) => e.target === popup && hidePopup());
+  qqLink.addEventListener('click', hidePopup);
+
+  // 回到顶部
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 300) backToTop.classList.add('visible');
+    else backToTop.classList.remove('visible');
+  });
+  backToTop.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // 导航栏激活态
+  window.addEventListener('scroll', () => {
+    const scrollPos = window.scrollY + 100;
+    sections.forEach(section => {
+      const id = section.getAttribute('id');
+      const link = document.querySelector(`.navbar-links a[href="#${id}"]`);
+      if (link && section.offsetTop <= scrollPos && section.offsetTop + section.offsetHeight > scrollPos) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+      }
+    });
+  });
+
+  // 复制群号
+  const copyBtns = document.querySelectorAll('.copy-btn');
+  copyBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const text = btn.getAttribute('data-clipboard-text');
+      navigator.clipboard.writeText(text).then(() => {
+        const original = btn.innerHTML;
+        btn.innerHTML = '已复制!';
+        btn.style.background = 'rgba(97,177,255,0.2)';
+        setTimeout(() => {
+          btn.innerHTML = original;
+          btn.style.background = '';
+        }, 1200);
+      });
+    });
+  });
+
+  // 打开弹窗按钮
+  document.querySelectorAll('.popup-trigger').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      showPopup();
+    });
+  });
+</script>
+</body>
+</html>
+© 2024 Minecraft客户端 版权所有
